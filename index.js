@@ -31,9 +31,30 @@ async function run() {
     await client.connect();
 
 
+    const userCollection = client.db("bostonDb").collection("users");
     const menuCollection = client.db("bostonDb").collection("menu");
     const reviewCollection = client.db("bostonDb").collection("reviews");
     const cartCollection = client.db("bostonDb").collection("carts");
+
+    // users related api
+
+    app.get('/users', async(req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      //insert email if user does not exists:
+      //you can do many ways (1. email uniqe, 2. upsert, 3. simple checking )
+      const query = {email: user.email}
+      const existingUser = await userCollection.findOne(query)
+      if(existingUser){
+        return res.send({ message: 'user already exists', insertedId: null})
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    })
 
     app.get('/menu', async(req, res) => {
         const result = await menuCollection.find().toArray()
